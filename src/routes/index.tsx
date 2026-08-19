@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   guardarDia,
+  lerDefinicoes,
   lerDia,
   listarServicosPorIntervalo,
   type Dia,
@@ -18,6 +19,7 @@ import {
   hojeISO,
   horaAgora,
   duracaoMin,
+  minutos,
   totalMinutosServicos,
 } from "@/lib/registo";
 
@@ -44,11 +46,13 @@ function Hoje() {
   const data = hojeISO();
   const [dia, setDia] = useState<Dia>({ data, entrada: null, saida: null });
   const [servicos, setServicos] = useState<Servico[]>([]);
+  const [entradaAlvo, setEntradaAlvo] = useState("07:30");
   const [pronto, setPronto] = useState(false);
 
   const carregar = useCallback(async () => {
     setDia(await lerDia(data));
     setServicos(await listarServicosPorIntervalo(data, data));
+    setEntradaAlvo((await lerDefinicoes()).entradaAlvo);
     setPronto(true);
   }, [data]);
 
@@ -66,6 +70,9 @@ function Hoje() {
     dia.entrada && dia.saida
       ? duracaoMin(dia.entrada, dia.saida)
       : totalMinutosServicos(servicos);
+
+  const desvio = dia.entrada ? minutos(dia.entrada) - minutos(entradaAlvo) : null;
+
 
   return (
     <AppShell titulo="Hoje">

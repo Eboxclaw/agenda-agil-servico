@@ -32,6 +32,8 @@ export type Definicoes = {
   id: "app";
   trabalhador: string;
   empresa: string;
+  /** hora prevista de entrada, HH:MM */
+  entradaAlvo: string;
   fornecedor: "anthropic" | "openai" | "openrouter" | "custom";
   chave: string;
   modelo: string;
@@ -70,6 +72,7 @@ export const DEFINICOES_PADRAO: Definicoes = {
   id: "app",
   trabalhador: "",
   empresa: "Sobral Agraço",
+  entradaAlvo: "07:30",
   fornecedor: "openrouter",
   chave: "",
   modelo: "anthropic/claude-3.5-sonnet",
