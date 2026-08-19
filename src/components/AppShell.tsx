@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { CalendarRange, Home, Settings, Sparkles } from "lucide-react";
+import { CalendarRange, Home, Settings, Sparkles, Users } from "lucide-react";
 import type { ReactNode } from "react";
 
 const abas = [
   { to: "/", label: "Hoje", icon: Home },
   { to: "/painel", label: "Painel", icon: CalendarRange },
+  { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/assistente", label: "Assistente", icon: Sparkles },
   { to: "/definicoes", label: "Definições", icon: Settings },
 ] as const;
@@ -19,7 +20,7 @@ export function AppShell({ titulo, children }: { titulo: string; children: React
       </header>
       <main className="mx-auto w-full max-w-2xl px-4 py-4">{children}</main>
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card">
-        <div className="mx-auto grid max-w-2xl grid-cols-4">
+        <div className="mx-auto grid max-w-2xl grid-cols-5">
           {abas.map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
@@ -27,7 +28,7 @@ export function AppShell({ titulo, children }: { titulo: string; children: React
               activeOptions={{ exact: to === "/" }}
               activeProps={{ className: "text-primary" }}
               inactiveProps={{ className: "text-muted-foreground" }}
-              className="flex flex-col items-center gap-1 py-3 text-xs font-medium"
+              className="flex flex-col items-center gap-1 py-3 text-[11px] font-medium"
             >
               <Icon className="size-5" />
               {label}
