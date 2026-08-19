@@ -10,12 +10,30 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssistenteRouteImport } from './routes/assistente'
+import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as DefinicoesRouteImport } from './routes/definicoes'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as ServicoIdRouteImport } from './routes/servico.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistenteRoute = AssistenteRouteImport.update({
+  id: '/assistente',
+  path: '/assistente',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DefinicoesRoute = DefinicoesRouteImport.update({
+  id: '/definicoes',
+  path: '/definicoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PainelRoute = PainelRouteImport.update({
@@ -31,30 +49,61 @@ const ServicoIdRoute = ServicoIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assistente': typeof AssistenteRoute
+  '/clientes': typeof ClientesRoute
+  '/definicoes': typeof DefinicoesRoute
   '/painel': typeof PainelRoute
   '/servico/$id': typeof ServicoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assistente': typeof AssistenteRoute
+  '/clientes': typeof ClientesRoute
+  '/definicoes': typeof DefinicoesRoute
   '/painel': typeof PainelRoute
   '/servico/$id': typeof ServicoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assistente': typeof AssistenteRoute
+  '/clientes': typeof ClientesRoute
+  '/definicoes': typeof DefinicoesRoute
   '/painel': typeof PainelRoute
   '/servico/$id': typeof ServicoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/painel' | '/servico/$id'
+  fullPaths:
+    | '/'
+    | '/assistente'
+    | '/clientes'
+    | '/definicoes'
+    | '/painel'
+    | '/servico/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/painel' | '/servico/$id'
-  id: '__root__' | '/' | '/painel' | '/servico/$id'
+  to:
+    | '/'
+    | '/assistente'
+    | '/clientes'
+    | '/definicoes'
+    | '/painel'
+    | '/servico/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/assistente'
+    | '/clientes'
+    | '/definicoes'
+    | '/painel'
+    | '/servico/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssistenteRoute: typeof AssistenteRoute
+  ClientesRoute: typeof ClientesRoute
+  DefinicoesRoute: typeof DefinicoesRoute
   PainelRoute: typeof PainelRoute
   ServicoIdRoute: typeof ServicoIdRoute
 }
@@ -66,6 +115,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistente': {
+      id: '/assistente'
+      path: '/assistente'
+      fullPath: '/assistente'
+      preLoaderRoute: typeof AssistenteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/definicoes': {
+      id: '/definicoes'
+      path: '/definicoes'
+      fullPath: '/definicoes'
+      preLoaderRoute: typeof DefinicoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/painel': {
@@ -87,6 +157,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssistenteRoute: AssistenteRoute,
+  ClientesRoute: ClientesRoute,
+  DefinicoesRoute: DefinicoesRoute,
   PainelRoute: PainelRoute,
   ServicoIdRoute: ServicoIdRoute,
 }
