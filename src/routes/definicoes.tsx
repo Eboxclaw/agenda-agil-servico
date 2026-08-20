@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Download, Upload, Trash2 } from "lucide-react";
+import { Bell, Download, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
 } from "@/lib/db";
 import { modeloSugerido, pedirIA } from "@/lib/ai";
 import { descarregar, hojeISO } from "@/lib/registo";
+import { pedirPermissaoNotificacoes } from "@/lib/alarmes";
 
 export const Route = createFileRoute("/definicoes")({
   head: () => ({
@@ -117,6 +118,54 @@ function Pagina() {
             A saída é livre — o app calcula as horas feitas a partir da entrada real.
           </p>
         </div>
+      </Card>
+
+      <Card className="mt-4 space-y-4 p-4">
+        <h2 className="font-semibold text-foreground">Lembretes</h2>
+        <label className="flex items-center justify-between gap-3 text-sm text-foreground">
+          <span>Lembrete de entrada ({d.entradaAlvo})</span>
+          <input
+            type="checkbox"
+            className="size-5 accent-primary"
+            checked={d.lembreteEntrada}
+            onChange={(e) => alterar({ lembreteEntrada: e.target.checked })}
+          />
+        </label>
+        <label className="flex items-center justify-between gap-3 text-sm text-foreground">
+          <span>Lembrete de saída</span>
+          <input
+            type="checkbox"
+            className="size-5 accent-primary"
+            checked={d.lembreteSaida}
+            onChange={(e) => alterar({ lembreteSaida: e.target.checked })}
+          />
+        </label>
+        <div>
+          <Label htmlFor="saidaLembrete">Hora do lembrete de saída</Label>
+          <Input
+            id="saidaLembrete"
+            type="time"
+            className="h-12"
+            value={d.saidaLembrete}
+            onChange={(e) => alterar({ saidaLembrete: e.target.value })}
+          />
+        </div>
+        <Button
+          variant="outline"
+          className="h-12 w-full"
+          onClick={async () => {
+            const ok = await pedirPermissaoNotificacoes();
+            toast[ok ? "success" : "error"](
+              ok ? "Notificações ativadas." : "Notificações não autorizadas.",
+            );
+          }}
+        >
+          <Bell className="mr-1 size-4" /> Ativar notificações
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          Os avisos tocam enquanto a app estiver aberta ou em segundo plano. No iPhone é preciso ter
+          a app instalada no ecrã principal.
+        </p>
       </Card>
 
       <Card className="mt-4 space-y-4 p-4">
