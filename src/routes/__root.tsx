@@ -8,9 +8,37 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { toast } from "sonner";
+import { registerSW } from "virtual:pwa-register";
 
 import appCss from "../styles.css?url";
+import { Toaster } from "@/components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+
+function registarServiceWorker() {
+  if (typeof window === "undefined") return;
+  registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      toast.info("Nova versão disponível", {
+        description: "Toque em Atualizar para aplicar a nova versão da app.",
+        action: { label: "Atualizar", onClick: () => window.location.reload() },
+        duration: 15000,
+      });
+    },
+    onOfflineReady() {
+      toast.success("Pronta para usar offline", {
+        description: "Já pode abrir a app sem ligação à internet.",
+        duration: 6000,
+      });
+    },
+  });
+  // Aquecer a cache de páginas com a raiz — garante arranque offline na 1ª visita.
+  void caches
+    .open("paginas")
+    .then((c) => c.add(new Request("/", { cache: "reload" })))
+    .catch(() => undefined);
+}
 
 function NotFoundComponent() {
   return (
@@ -76,15 +104,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { title: "Solar Agraço — Registo de Serviços" },
+      {
+        name: "description",
+        content:
+          "Registe entradas, saídas, clientes, materiais e fotos do seu dia de trabalho — tudo no telemóvel, funciona offline.",
+      },
+      { name: "theme-color", content: "#0f172b" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Solar Agraço" },
+      { property: "og:title", content: "Solar Agraço — Registo de Serviços" },
+      {
+        property: "og:description",
+        content: "Registo de trabalho de campo: horas, clientes, materiais e fotos, offline.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -92,6 +128,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -102,7 +140,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt">
       <head>
         <HeadContent />
       </head>
@@ -117,10 +155,15 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    registarServiceWorker();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }

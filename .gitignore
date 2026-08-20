@@ -16,6 +16,9 @@ dist-ssr
 .nitro
 *.local
 
+# PWA / VitePWA
+dev-dist/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
