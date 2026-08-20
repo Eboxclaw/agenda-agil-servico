@@ -4,6 +4,7 @@ import { ArrowLeft, Camera, CalendarPlus, Download, FileText, Mic, Plus, Share2,
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { BotaoVoz } from "@/components/BotaoVoz";
+import { ScannerNota } from "@/components/ScannerNota";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -343,6 +344,15 @@ function PaginaServico() {
           ))}
         </div>
       </Card>
+
+      <ScannerNota
+        aoInserirNoServico={(texto) => {
+          const linhas = texto.split("\n").filter(Boolean);
+          if (linhas.length > 0) alterar({ cliente: linhas[0] || "" });
+          if (linhas.length > 1) alterar({ morada: linhas[1] || "" });
+          if (linhas.length > 2) alterar({ trabalho: linhas.slice(2).join("\n") });
+        }}
+      />
 
       <Card className="mt-4 p-4">
         <h2 className="font-semibold text-foreground">Fotografias</h2>
