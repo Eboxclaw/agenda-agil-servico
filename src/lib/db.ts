@@ -17,6 +17,11 @@ export type Servico = {
   materiais: Material[];
   fotoIds: string[];
   criadoEm: number;
+  /** coordenadas opcionais do local do serviço */
+  lat?: number;
+  lng?: number;
+  /** alarme opcional para este serviço, HH:MM */
+  alarme?: string;
 };
 
 export type Dia = {
@@ -38,6 +43,12 @@ export type Definicoes = {
   chave: string;
   modelo: string;
   endpoint: string;
+  /** lembrete diário à hora de entrada prevista */
+  lembreteEntrada: boolean;
+  /** lembrete diário de fim de dia */
+  lembreteSaida: boolean;
+  /** hora do lembrete de saída, HH:MM */
+  saidaLembrete: string;
 };
 
 interface RegistoDB extends DBSchema {
@@ -77,6 +88,9 @@ export const DEFINICOES_PADRAO: Definicoes = {
   chave: "",
   modelo: "anthropic/claude-3.5-sonnet",
   endpoint: "",
+  lembreteEntrada: false,
+  lembreteSaida: false,
+  saidaLembrete: "17:30",
 };
 
 export async function lerDefinicoes(): Promise<Definicoes> {
