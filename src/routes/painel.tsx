@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { CalendarPlus, ChevronLeft, ChevronRight, Download, Share2 } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, Download, FileText, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,11 +15,20 @@ import {
   formatarDuracao,
   intervaloPeriodo,
   partilhar,
+  partilharFicheiro,
   resumoTexto,
   servicosParaCSV,
   servicosParaICS,
   totalMinutosServicos,
 } from "@/lib/registo";
+import {
+  abrirParaPDF,
+  cartaoServico,
+  relatorioDOC,
+  relatorioHTML,
+  relatorioMarkdown,
+} from "@/lib/relatorio";
+import type { MetaRelatorio } from "@/lib/relatorio";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -46,14 +56,15 @@ function Painel() {
   const [ref, setRef] = useState(() => new Date());
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [dias, setDias] = useState<Dia[]>([]);
-  const [trabalhador, setTrabalhador] = useState("");
+  const [meta, setMeta] = useState<MetaRelatorio>({});
 
   const { de, ate } = intervaloPeriodo(periodo, ref);
 
   const carregar = useCallback(async () => {
     setServicos(await listarServicosPorIntervalo(de, ate));
     setDias((await listarDias()).filter((d) => d.data >= de && d.data <= ate));
-    setTrabalhador((await lerDefinicoes()).trabalhador);
+    const def = await lerDefinicoes();
+    setMeta({ trabalhador: def.trabalhador, empresa: def.empresa });
   }, [de, ate]);
 
   useEffect(() => {
@@ -78,7 +89,23 @@ function Painel() {
   const porDia = new Map<string, Servico[]>();
   for (const s of servicos) porDia.set(s.data, [...(porDia.get(s.data) ?? []), s]);
 
-  const texto = resumoTexto(servicos, dias, `Relatório ${titulo}`, trabalhador);
+  const texto = resumoTexto(servicos, dias, `Relatório ${titulo}`, meta.trabalhador ?? "");
+
+  async function exportar(tipo: "pdf" | "doc" | "md" | "cartao") {
+    const nome = `relatorio-${de}_${ate}`;
+    if (tipo === "pdf") {
+      const html = await relatorioHTML(servicos, dias, `Relatório ${titulo}`, meta);
+      abrirParaPDF(html);
+    } else if (tipo === "doc") {
+      await relatorioDOC(servicos, dias, `Relatório ${titulo}`, meta);
+    } else if (tipo === "md") {
+      const md = relatorioMarkdown(servicos, dias, `Relatório ${titulo}`, meta);
+      descarregar(`${nome}.md`, md, "text/markdown;charset=utf-8");
+    } else if (tipo === "cartao") {
+      const json = await cartaoServico(servicos, dias);
+      await partilharFicheiro(`${nome}.scard`, json, "application/json");
+    }
+  }
 
   return (
     <AppShell titulo="Painel">
@@ -184,9 +211,18 @@ function Painel() {
         </Card>
       )}
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Button variant="outline" className="h-12" onClick={() => partilhar("Relatório", texto)}>
           <Share2 className="mr-1 size-4" /> Partilhar
+        </Button>
+        <Button variant="outline" className="h-12" onClick={() => exportar("pdf")}>
+          <FileText className="mr-1 size-4" /> PDF
+        </Button>
+        <Button variant="outline" className="h-12" onClick={() => exportar("doc")}>
+          <Download className="mr-1 size-4" /> Word
+        </Button>
+        <Button variant="outline" className="h-12" onClick={() => exportar("md")}>
+          <FileText className="mr-1 size-4" /> Markdown
         </Button>
         <Button
           variant="outline"
@@ -218,6 +254,9 @@ function Painel() {
           }
         >
           <CalendarPlus className="mr-1 size-4" /> Calendário
+        </Button>
+        <Button variant="outline" className="h-12" onClick={() => exportar("cartao")}>
+          <Share2 className="mr-1 size-4" /> Cartão
         </Button>
       </div>
     </AppShell>

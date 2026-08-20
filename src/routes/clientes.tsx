@@ -7,13 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { lerDefinicoes, listarDias, listarServicos, type Dia, type Servico } from "@/lib/db";
-import { relatorioHTML, servicoJSONCompleto, servicoTerminado } from "@/lib/relatorio";
+import {
+  abrirParaPDF,
+  cartaoServico,
+  relatorioDOC,
+  relatorioHTML,
+  relatorioMarkdown,
+  servicoJSONCompleto,
+  servicoTerminado,
+  type MetaRelatorio,
+} from "@/lib/relatorio";
 import {
   descarregar,
   duracaoMin,
   formatarData,
   formatarDuracao,
   partilhar,
+  partilharFicheiro,
   resumoTexto,
   servicosParaCSV,
   totalMinutosServicos,
@@ -46,7 +56,7 @@ function Clientes() {
   const navigate = useNavigate();
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [dias, setDias] = useState<Dia[]>([]);
-  const [meta, setMeta] = useState({ trabalhador: "", empresa: "" });
+  const [meta, setMeta] = useState<MetaRelatorio>({});
   const [procura, setProcura] = useState("");
   const [aberto, setAberto] = useState<string | null>(null);
 
@@ -73,16 +83,34 @@ function Clientes() {
       .sort((a, b) => a.nome.localeCompare(b.nome, "pt"));
   }, [servicos, procura]);
 
-  async function exportarRelatorio(nome: string, lista: Servico[]) {
-    toast.info("A preparar relatório com fotografias…");
-    const html = await relatorioHTML(lista, dias, `Relatório — ${nome}`, meta);
-    descarregar(`relatorio-${nome.replace(/\W+/g, "-").toLowerCase()}.html`, html, "text/html");
-    toast.success("Relatório exportado.");
+async function exportarRelatorio(nome: string, lista: Servico[]) {
+    toast.info("A preparar relatório com fotografias\u2026");
+    const html = await relatorioHTML(lista, dias, `Relat\u00f3rio \u2014 ${nome}`, meta);
+    descarregar(`relatorio-${nome.replace(/[\W]+/g, "-").toLowerCase()}.html`, html, "text/html");
+    toast.success("Relat\u00f3rio exportado.");
   }
 
   async function exportarJSON(nome: string, lista: Servico[]) {
     const json = await servicoJSONCompleto(lista, dias);
-    descarregar(`dados-${nome.replace(/\W+/g, "-").toLowerCase()}.json`, json, "application/json");
+    descarregar(`dados-${nome.replace(/[\W]+/g, "-").toLowerCase()}.json`, json, "application/json");
+  }
+
+  async function exportar(nome: string, lista: Servico[], tipo: "pdf" | "doc" | "md" | "cartao") {
+    toast.info("A preparar\u2026");
+    const prefix = nome.replace(/[\\W]+/g, "-").toLowerCase();
+    if (tipo === "pdf") {
+      const html = await relatorioHTML(lista, dias, `Relat\u00f3rio \u2014 ${nome}`, meta);
+      abrirParaPDF(html);
+    } else if (tipo === "doc") {
+      await relatorioDOC(lista, dias, `Relat\u00f3rio \u2014 ${nome}`, meta);
+    } else if (tipo === "md") {
+      const md = relatorioMarkdown(lista, dias, `Relat\u00f3rio \u2014 ${nome}`, meta);
+      descarregar(`${prefix}.md`, md, "text/markdown;charset=utf-8");
+    } else if (tipo === "cartao") {
+      const json = await cartaoServico(lista, dias);
+      await partilharFicheiro(`${prefix}.scard`, json, "application/json");
+    }
+    toast.success("Exportado.");
   }
 
   return (
@@ -126,7 +154,7 @@ function Clientes() {
                     {moradas[0] && (
                       <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted-foreground">
                         <MapPin className="size-3.5 shrink-0" /> {moradas[0]}
-                        {moradas.length > 1 ? ` +${moradas.length - 1}` : ""}
+                        {moradas.length > 1 ? ` +\${moradas.length - 1}` : ""}
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground">
@@ -158,20 +186,31 @@ function Clientes() {
                     </button>
                   ))}
 
-                  <div className="grid grid-cols-2 gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      className="h-11"
-                      onClick={() => exportarRelatorio(c.nome, c.servicos)}
-                    >
+                  <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-4">
+                    <Button variant="outline" className="h-11" onClick={() => exportarRelatorio(c.nome, c.servicos)}>
                       <FileText className="mr-1 size-4" /> Relatório
+                    </Button>
+                    <Button variant="outline" className="h-11" onClick={() => exportar(c.nome, c.servicos, "pdf")}>
+                      <FileText className="mr-1 size-4" /> PDF
+                    </Button>
+                    <Button variant="outline" className="h-11" onClick={() => exportar(c.nome, c.servicos, "doc")}>
+                      <Download className="mr-1 size-4" /> Word
+                    </Button>
+                    <Button variant="outline" className="h-11" onClick={() => exportar(c.nome, c.servicos, "md")}>
+                      <FileText className="mr-1 size-4" /> Markdown
+                    </Button>
+                    <Button variant="outline" className="h-11" onClick={() => exportarJSON(c.nome, c.servicos)}>
+                      <Download className="mr-1 size-4" /> JSON + fotos
+                    </Button>
+                    <Button variant="outline" className="h-11" onClick={() => exportar(c.nome, c.servicos, "cartao")}>
+                      <Share2 className="mr-1 size-4" /> Cartão
                     </Button>
                     <Button
                       variant="outline"
                       className="h-11"
                       onClick={() =>
                         descarregar(
-                          `servicos-${c.nome.replace(/\W+/g, "-").toLowerCase()}.csv`,
+                          `servicos-\${c.nome.replace(/[\W]+/g, "-").toLowerCase()}.csv`,
                           servicosParaCSV(c.servicos, dias),
                           "text/csv",
                         )
@@ -179,16 +218,13 @@ function Clientes() {
                     >
                       <Download className="mr-1 size-4" /> CSV
                     </Button>
-                    <Button variant="outline" className="h-11" onClick={() => exportarJSON(c.nome, c.servicos)}>
-                      <Download className="mr-1 size-4" /> JSON + fotos
-                    </Button>
                     <Button
                       variant="outline"
                       className="h-11"
                       onClick={() =>
                         partilhar(
                           c.nome,
-                          resumoTexto(c.servicos, dias, `Serviços — ${c.nome}`, meta.trabalhador),
+                          resumoTexto(c.servicos, dias, `Serviços — \${c.nome}`, meta.trabalhador ?? ""),
                         )
                       }
                     >

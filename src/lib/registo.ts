@@ -41,7 +41,7 @@ export function intervaloPeriodo(periodo: "dia" | "semana" | "mes", ref: Date) {
   const base = new Date(ref);
   if (periodo === "dia") return { de: hojeISO(base), ate: hojeISO(base) };
   if (periodo === "semana") {
-    const dia = (base.getDay() + 6) % 7; // segunda = 0
+    const dia = (base.getDay() + 6) % 7;
     const ini = new Date(base);
     ini.setDate(base.getDate() - dia);
     const fim = new Date(ini);
@@ -57,12 +57,7 @@ export function totalMinutosServicos(servicos: Servico[]) {
   return servicos.reduce((t, s) => t + duracaoMin(s.inicio, s.fim), 0);
 }
 
-export function resumoTexto(
-  servicos: Servico[],
-  dias: Dia[],
-  titulo: string,
-  trabalhador: string,
-) {
+export function resumoTexto(servicos: Servico[], dias: Dia[], titulo: string, trabalhador: string) {
   const linhas: string[] = [`*${titulo}*`];
   if (trabalhador) linhas.push(`Trabalhador: ${trabalhador}`);
   linhas.push("");
@@ -98,18 +93,8 @@ export function resumoTexto(
 
 export function servicosParaCSV(servicos: Servico[], dias: Dia[]) {
   const cab = [
-    "Data",
-    "Entrada do dia",
-    "Saída do dia",
-    "Início",
-    "Fim",
-    "Duração (min)",
-    "Cliente",
-    "Morada",
-    "Trabalho",
-    "Observações",
-    "Materiais",
-    "Nº fotos",
+    "Data", "Entrada do dia", "Saída do dia", "Início", "Fim",
+    "Duração (min)", "Cliente", "Morada", "Trabalho", "Observações", "Materiais", "Nº fotos",
   ];
   const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`;
   const linhas = servicos.map((s) => {
@@ -153,9 +138,10 @@ export function servicosParaICS(servicos: Servico[]) {
       "END:VEVENT",
     ].join("\r\n"),
   );
-  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Registo Servicos//PT", ...eventos, "END:VCALENDAR"].join(
-    "\r\n",
-  );
+  return [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Registo Servicos//PT",
+    ...eventos, "END:VCALENDAR",
+  ].join("\r\n");
 }
 
 export function descarregar(nome: string, conteudo: string, tipo: string) {
@@ -180,4 +166,26 @@ export async function partilhar(titulo: string, texto: string) {
   }
   window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
   return "whatsapp";
+}
+
+/**
+ * Partilha um ficheiro via navigator.share (suporta WhatsApp/Telegram).
+ * Fallback para descarregar() quando a API de ficheiros não está disponível.
+ */
+export async function partilharFicheiro(nome: string, conteudo: string, tipo: string) {
+  const nav = navigator as Navigator & {
+    share?: (d: ShareData) => Promise<void>;
+    canShare?: (d: ShareData) => boolean;
+  };
+  const blob = new Blob([conteudo], { type: tipo });
+  const file = new File([blob], nome, { type: tipo });
+  if (nav.canShare?.({ files: [file] })) {
+    try {
+      await nav.share({ files: [file] });
+      return;
+    } catch {
+      // user cancelou ou não conseguiu
+    }
+  }
+  descarregar(nome, conteudo, tipo);
 }
