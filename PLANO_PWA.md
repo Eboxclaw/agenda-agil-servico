@@ -22,33 +22,17 @@ Tech stack: TanStack Start + React 19 + shadcn/ui + Tailwind 4 + IndexedDB (idb)
 
 ---
 
+## ✅ Fases 4–6 concluídas
+
+- **Compressão de fotos** — `src/lib/fotos.ts` (`comprimirFoto`, máx. 1600 px, JPEG 0.82) aplicada ao guardar
+- **Geolocalização** — campos `lat`/`lng` no serviço, botão "Usar localização atual", reverse-geocode Nominatim quando a morada está vazia, link "Ver no mapa"
+- **Alarmes** — `src/lib/alarmes.ts` com scheduler de 30 s, notificações via SW, vibração, beep e toast; lembretes de entrada/saída nas Definições e alarme por serviço; avisos de alarmes perdidos
+- **Desvio de horário** — o ecrã Hoje mostra minutos antes/depois da hora prevista
+- **Banner de instalação** integrado no ecrã Hoje
+
 ## 🔜 O que falta fazer
 
-### Fase 4 — Compressão de fotos
-- Criar `src/lib/fotos.ts` com `comprimirFoto(blob, maxLado=1600, qualidade=0.82)`
-- Usar `createImageBitmap` com orientação EXIF `+ canvas` para redimensionar antes de guardar no IndexedDB
-- Aplicar no editor de serviço (`guardarFoto`)
-- Fotos antigas ficam como estão (sem migração)
-
-### Fase 5 — Geolocalização no serviço
-- Campos `lat` / `lng` opcionais no type `Servico` (no `src/lib/db.ts`)
-- Botão "Usar localização atual" no editor de serviço
-- `navigator.geolocation.getCurrentPosition` (timeout 10s)
-- Se morada vazia, tentar reverse-geocode (Nominatim grátis, falha silenciosa)
-- Mostrar link "Ver no mapa" (Google/Apple Maps) quando há coordenadas
-
-### Fase 6 — Alarmes e lembretes
-- **Definições:** toggles "Lembrete de entrada" (hora = entradaAlvo), "Lembrete de saída" (hora configurável), botão "Ativar notificações" (pedir permissão)
-- **Editor de serviço:** toggle + hora para alarme por cliente ("chegar ao cliente X")
-- **Motor de alarmes** (`src/lib/alarmes.ts`):
-  - Calcula próximos alarmes a partir de Definições + Dia de hoje + serviços com alarme
-  - Scheduler com `setInterval` 30s enquanto a app está aberta
-  - Ao disparar: `showNotification` via registo SW + vibrate + toast + beep (WebAudio)
-  - Estado "disparado" em localStorage para evitar repetições
-  - Ao abrir a app: banner "alarmes perdidos" para os que passaram fechados
-- **Nota:** iOS limita notificações push sem servidor; funcionam com app aberta/em background. Android tem mais margem graças ao SW.
-
-### Fase 7 — Testes e verificação
+### Fase 7 — Testes em dispositivo real (offline, alarmes, câmara)
 - Dev server: verificar manifest, SW ativo, console sem erros
 - Testar criar/editar serviço, compressão de foto, geolocalização
 - Testar alarme com disparo "agora +1 minuto"
