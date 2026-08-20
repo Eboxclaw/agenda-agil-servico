@@ -285,7 +285,7 @@ function PaginaServico() {
               onChange={(e) => alterar({ alarme: e.target.value })}
             />
             {servico.alarme && (
-              <Button variant="ghost" size="sm" onClick={() => alterar({ alarme: undefined })}>
+              <Button variant="ghost" size="sm" onClick={() => alterar({ alarme: "" })}>
                 Remover
               </Button>
             )}
