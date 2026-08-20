@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Camera, CalendarPlus, Plus, Share2, Trash2, X } from "lucide-react";
+import { ArrowLeft, Bell, Camera, CalendarPlus, MapPin, Plus, Share2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,8 @@ import {
   partilhar,
   servicosParaICS,
 } from "@/lib/registo";
+import { comprimirFoto } from "@/lib/fotos";
+import { pedirPermissaoNotificacoes } from "@/lib/alarmes";
 
 export const Route = createFileRoute("/servico/$id")({
   head: () => ({
@@ -112,7 +114,7 @@ function PaginaServico() {
   async function adicionarFotos(files: FileList | null) {
     if (!files || !servico) return;
     const novos: string[] = [];
-    for (const f of Array.from(files)) novos.push(await guardarFoto(f));
+    for (const f of Array.from(files)) novos.push(await guardarFoto(await comprimirFoto(f)));
     alterar({ fotoIds: [...servico.fotoIds, ...novos] });
   }
 
@@ -127,6 +129,34 @@ function PaginaServico() {
     alterar({
       materiais: servico.materiais.map((m) => (m.id === mid ? { ...m, ...patch } : m)),
     });
+  }
+
+  async function usarLocalizacao() {
+    if (!navigator.geolocation) {
+      toast.error("Este telemóvel não permite localização.");
+      return;
+    }
+    toast.info("A obter localização…");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        alterar({ lat, lng });
+        toast.success("Localização guardada.");
+        if (!servico?.morada.trim()) {
+          try {
+            const r = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+            );
+            const j = (await r.json()) as { display_name?: string };
+            if (j.display_name) alterar({ morada: j.display_name });
+          } catch {
+            /* morada continua manual */
+          }
+        }
+      },
+      () => toast.error("Não foi possível obter a localização."),
+      { timeout: 10000, enableHighAccuracy: true },
+    );
   }
 
   async function guardar() {
@@ -186,6 +216,21 @@ function PaginaServico() {
             placeholder="Rua, número, localidade"
             className="h-12"
           />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={usarLocalizacao}>
+              <MapPin className="mr-1 size-4" /> Usar localização atual
+            </Button>
+            {servico.lat != null && servico.lng != null && (
+              <a
+                className="text-sm underline text-muted-foreground"
+                href={`https://www.google.com/maps/search/?api=1&query=${servico.lat},${servico.lng}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Ver no mapa
+              </a>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
@@ -227,6 +272,30 @@ function PaginaServico() {
           <Button variant="outline" size="sm" onClick={() => alterar({ fim: horaAgora() })}>
             Terminar agora
           </Button>
+        </div>
+
+        <div>
+          <Label htmlFor="alarme">Alarme (opcional)</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="alarme"
+              type="time"
+              className="h-12 w-40"
+              value={servico.alarme ?? ""}
+              onChange={(e) => alterar({ alarme: e.target.value })}
+            />
+            {servico.alarme && (
+              <Button variant="ghost" size="sm" onClick={() => alterar({ alarme: "" })}>
+                Remover
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => void pedirPermissaoNotificacoes()}>
+              <Bell className="mr-1 size-4" /> Ativar avisos
+            </Button>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Toca com a app aberta ou em segundo plano, para lembrar a ida a este cliente.
+          </p>
         </div>
 
         <div>

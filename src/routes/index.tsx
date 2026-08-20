@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Clock, LogIn, LogOut, MapPin, Plus } from "lucide-react";
+import { AlarmClock, Clock, LogIn, LogOut, MapPin, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { BannerInstalarPWA } from "@/components/BannerInstalarPWA";
+import { iniciarAlarmes } from "@/lib/alarmes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -60,6 +63,13 @@ function Hoje() {
     void carregar();
   }, [carregar]);
 
+  useEffect(() => {
+    return iniciarAlarmes((a, perdido) => {
+      if (perdido) toast.warning(`Alarme perdido: ${a.titulo}`, { description: `Estava marcado para as ${a.hora}.` });
+      else toast(a.titulo, { description: a.corpo, duration: 20000 });
+    });
+  }, []);
+
   async function marcar(campo: "entrada" | "saida") {
     const novo = { ...dia, [campo]: horaAgora() };
     setDia(novo);
@@ -80,6 +90,8 @@ function Hoje() {
         {diaSemana(data)}, {formatarData(data)}
       </p>
 
+      <BannerInstalarPWA />
+
       <Card className="mt-3 p-4">
         <div className="flex items-center justify-between">
           <div>
@@ -92,6 +104,19 @@ function Hoje() {
             </p>
           </div>
         </div>
+        {desvio !== null && (
+          <p className="mt-2 flex items-center gap-1 text-sm">
+            <AlarmClock className="size-4 text-muted-foreground" />
+            <span className={desvio > 0 ? "text-destructive" : "text-muted-foreground"}>
+              {desvio === 0
+                ? `Entrada à hora prevista (${entradaAlvo})`
+                : desvio > 0
+                  ? `${desvio} min depois das ${entradaAlvo}`
+                  : `${Math.abs(desvio)} min antes das ${entradaAlvo}`}
+            </span>
+          </p>
+        )}
+
         <div className="mt-4 grid grid-cols-2 gap-3">
           <Button size="lg" className="h-14 text-base" onClick={() => marcar("entrada")}>
             <LogIn className="mr-1 size-5" /> Entrada
