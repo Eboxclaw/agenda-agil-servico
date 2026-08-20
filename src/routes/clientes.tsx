@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Download, FileText, MapPin, Search, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { BotaoVoz } from "@/components/BotaoVoz";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -115,14 +116,17 @@ async function exportarRelatorio(nome: string, lista: Servico[]) {
 
   return (
     <AppShell titulo="Clientes">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={procura}
-          onChange={(e) => setProcura(e.target.value)}
-          placeholder="Procurar cliente"
-          className="h-12 pl-9"
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={procura}
+            onChange={(e) => setProcura(e.target.value)}
+            placeholder="Procurar cliente"
+            className="h-12 pl-9"
+          />
+        </div>
+        <BotaoVoz aoResultado={(t) => setProcura(t)} />
       </div>
 
       <p className="mt-3 text-sm text-muted-foreground">

@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Camera, CalendarPlus, Download, FileText, Plus, Share2, Trash2, X } from "lucide-react";
+import { ArrowLeft, Camera, CalendarPlus, Download, FileText, Mic, Plus, Share2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { BotaoVoz } from "@/components/BotaoVoz";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -187,14 +188,17 @@ function PaginaServico() {
       <Card className="space-y-4 p-4">
         <div>
           <Label htmlFor="cliente">Cliente</Label>
-          <Input
-            id="cliente"
-            list="lista-clientes"
-            value={servico.cliente}
-            onChange={(e) => alterar({ cliente: e.target.value })}
-            placeholder="Nome do cliente"
-            className="h-12"
-          />
+          <div className="flex gap-2">
+            <Input
+              id="cliente"
+              list="lista-clientes"
+              value={servico.cliente}
+              onChange={(e) => alterar({ cliente: e.target.value })}
+              placeholder="Nome do cliente"
+              className="h-12 flex-1"
+            />
+            <BotaoVoz aoResultado={(t) => alterar({ cliente: t })} />
+          </div>
           <datalist id="lista-clientes">
             {clientes.map((c) => (
               <option key={c} value={c} />
@@ -204,13 +208,16 @@ function PaginaServico() {
 
         <div>
           <Label htmlFor="morada">Morada</Label>
-          <Input
-            id="morada"
-            value={servico.morada}
-            onChange={(e) => alterar({ morada: e.target.value })}
-            placeholder="Rua, número, localidade"
-            className="h-12"
-          />
+          <div className="flex gap-2">
+            <Input
+              id="morada"
+              value={servico.morada}
+              onChange={(e) => alterar({ morada: e.target.value })}
+              placeholder="Rua, número, localidade"
+              className="h-12 flex-1"
+            />
+            <BotaoVoz aoResultado={(t) => alterar({ morada: t })} />
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
@@ -256,24 +263,32 @@ function PaginaServico() {
 
         <div>
           <Label htmlFor="trabalho">Trabalho realizado</Label>
-          <Textarea
-            id="trabalho"
-            rows={4}
-            value={servico.trabalho}
-            onChange={(e) => alterar({ trabalho: e.target.value })}
-            placeholder="O que foi feito no cliente"
-          />
+          <div className="flex gap-2">
+            <Textarea
+              id="trabalho"
+              rows={4}
+              value={servico.trabalho}
+              onChange={(e) => alterar({ trabalho: e.target.value })}
+              placeholder="O que foi feito no cliente"
+              className="flex-1"
+            />
+            <BotaoVoz aoResultado={(t) => alterar({ trabalho: t })} className="mt-0" />
+          </div>
         </div>
 
         <div>
           <Label htmlFor="obs">Observações</Label>
-          <Textarea
-            id="obs"
-            rows={3}
-            value={servico.obs}
-            onChange={(e) => alterar({ obs: e.target.value })}
-            placeholder="Notas, avarias encontradas, próximos passos"
-          />
+          <div className="flex gap-2">
+            <Textarea
+              id="obs"
+              rows={3}
+              value={servico.obs}
+              onChange={(e) => alterar({ obs: e.target.value })}
+              placeholder="Notas, avarias encontradas, próximos passos"
+              className="flex-1"
+            />
+            <BotaoVoz aoResultado={(t) => alterar({ obs: t })} className="mt-0" />
+          </div>
         </div>
       </Card>
 

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Download, Upload, ClipboardPaste, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { BotaoVoz } from "@/components/BotaoVoz";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -171,11 +172,17 @@ function Pagina() {
         <h2 className="font-semibold text-foreground">Trabalhador</h2>
         <div>
           <Label htmlFor="trab">Nome</Label>
-          <Input id="trab" className="h-12" value={d.trabalhador} onChange={(e) => alterar({ trabalhador: e.target.value })} />
+          <div className="flex gap-2">
+            <Input id="trab" className="h-12 flex-1" value={d.trabalhador} onChange={(e) => alterar({ trabalhador: e.target.value })} />
+            <BotaoVoz aoResultado={(t) => alterar({ trabalhador: t })} />
+          </div>
         </div>
         <div>
           <Label htmlFor="emp">Empresa</Label>
-          <Input id="emp" className="h-12" value={d.empresa} onChange={(e) => alterar({ empresa: e.target.value })} />
+          <div className="flex gap-2">
+            <Input id="emp" className="h-12 flex-1" value={d.empresa} onChange={(e) => alterar({ empresa: e.target.value })} />
+            <BotaoVoz aoResultado={(t) => alterar({ empresa: t })} />
+          </div>
         </div>
         <div>
           <Label htmlFor="alvo">Hora de entrada prevista</Label>
