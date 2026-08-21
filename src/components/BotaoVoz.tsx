@@ -1,6 +1,5 @@
 import { Mic, MicOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useVoz } from "@/hooks/useVoz";
 
 type Props = {
@@ -30,42 +29,30 @@ export function BotaoVoz({
   const aOuvir = estado === "aouvir";
   const carregando = estado === "processando";
 
-  const tooltipTexto = {
-    parada: "Iniciar ditado por voz",
-    aouvir: "Parar ditado",
+  const titulo = {
+    parada: "Ditar por voz",
+    aouvir: "Toque para parar",
     processando: "A processar\u2026",
     erro: erro ?? "Erro de voz",
   }[estado];
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant={aOuvir ? "default" : "outline"}
-            size="icon"
-            className={`shrink-0 ${
-              aOuvir ? "animate-pulse bg-green-600 hover:bg-green-700" : ""
-            } ${className}`}
-            onClick={() => {
-              if (aOuvir) parar();
-              else alternar();
-            }}
-          >
-            {carregando ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : aOuvir ? (
-              <MicOff className="size-4" />
-            ) : (
-              <Mic className="size-4" />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top">
-          <p className="text-xs">{aOuvir ? "Toque para parar" : tooltipTexto}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Button
+      type="button"
+      variant={aOuvir ? "default" : "outline"}
+      size="icon"
+      title={titulo}
+      aria-label={titulo}
+      className={`size-11 shrink-0 rounded-xl ${aOuvir ? "animate-pulse" : ""} ${className}`}
+      onClick={() => (aOuvir ? parar() : alternar())}
+    >
+      {carregando ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : aOuvir ? (
+        <MicOff className="size-4" />
+      ) : (
+        <Mic className="size-4" />
+      )}
+    </Button>
   );
 }
